@@ -1,1 +1,34 @@
-sdaa
+name: Builder
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  Builder:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_NAMESPACE: pascallll
+      APP_NAME: idrac_exporter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Login local Dockerhub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ALI_DOCKER_REGISTRY }}
+          username: ${{ secrets.ALI_DOCKER_USERNAME }}
+          password: ${{ secrets.ALI_DOCKER_PASSWORD }}
+          
+      - name: Build && Push Docker
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ secrets.ALI_DOCKER_REGISTRY }}/${{ env.DOCKER_NAMESPACE }}/${{ env.APP_NAME }}:${{ env.GITHUB_RUN_NUMBER }}
